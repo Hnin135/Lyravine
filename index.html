@@ -1,0 +1,1842 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lyravine</title>
+
+  <link rel="icon" href="LayavineFavicon.ico" type="image/x-icon">
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Arial', sans-serif;
+    }
+
+    /* ---------------- NAVBAR ---------------- */
+    nav {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 50px;
+      background: rgba(192, 167, 134, 0.85);
+      backdrop-filter: blur(12px);
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #9f896b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      font-size: 22px;
+      color: white;
+    }
+
+    .logo-text {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .logo-text .L {
+      color: transparent;
+      -webkit-text-stroke: 2px #6d482b;
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    .logo-text .yravine {
+      color: #6d482b;
+      font-size: 23px;
+      font-weight: bold;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: #000000;
+      padding: 8px 15px;
+      border-radius: 8px;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .nav-links a::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      width: 100%;
+      height: 100%;
+      background: #9f896b;
+      border-radius: 8px;
+      z-index: -1;
+      transition: transform 0.3s ease;
+    }
+
+    .nav-links a:hover::before {
+      transform: translate(-50%, -50%) scale(1);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-links a:hover {
+      color: #fff;
+    }
+
+    .search-box input {
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid #9f896b;
+      box-shadow: 2px 2px 8px rgba(127, 108, 83, 0.5);
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+      gap: 5px;
+    }
+
+    .hamburger div {
+      width: 25px;
+      height: 3px;
+      background: #6d482b;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+
+    @media (max-width: 768px) {
+      nav {
+        padding: 10px 20px;
+      }
+
+      .nav-links {
+        position: absolute;
+        top: 70px;
+        right: 0;
+        background: rgba(192, 167, 134, 0.95);
+        backdrop-filter: blur(10px);
+        flex-direction: column;
+        width: 200px;
+        padding: 15px;
+        gap: 15px;
+        border-radius: 10px 0 0 10px;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+      }
+
+      .nav-links.active {
+        transform: translateX(0);
+      }
+
+      .hamburger {
+        display: flex;
+      }
+    }
+
+    /* ---------------- BANNER CAROUSEL ---------------- */
+    .carousel-item img {
+      height: 80vh;
+      object-fit: cover;
+      width: 100%;
+      border-radius: 1rem;
+      box-shadow: 0 0.5rem 1rem rgba(255,255,255,0.05);
+    }
+
+    @media (max-width: 768px) {
+      .carousel-item img {
+        height: 50vh;
+      }
+    }
+
+    /* ---------------- OVERALL BACKGROUND ---------------- */
+    body {
+      background: linear-gradient(to bottom right, #FFFFF0, #C68642);
+    }
+
+    /* ---------------- TOP OST SECTION ---------------- */
+    #top-ost {
+      padding: 60px 20px;
+    }
+
+    #top-ost .section-title {
+      text-align: center;
+      font-size: 36px;
+      font-weight: bold;
+      margin-bottom: 50px;
+      color: #333333;
+    }
+
+    .ost-embossed-box {
+      background: #9f896b;
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 40px;
+      box-shadow: 8px 8px 15px rgba(0,0,0,0.4),
+                  -8px -8px 15px rgba(255,255,255,0.1);
+      color: #ffffff;
+      position: relative; /* for injected nav buttons */
+    }
+
+    .ost-row-title {
+      font-size: 22px;
+      margin-bottom: 20px;
+      color: #000000;
+    }
+
+    /*
+      Changed ost-cards behavior to a horizontal scroll container.
+      This preserves card sizes / boundaries while hiding overflow and
+      allowing arrow navigation. Script will inject prev/next buttons per row.
+    */
+    .ost-cards {
+      display: flex;
+      gap: 15px;
+      /* horizontal carousel behavior */
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 6px; /* allow space for focus outlines */
+    }
+
+    .ost-card {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      /* Fixed visible columns: default show 6 cards across */
+      flex: 0 0 calc((100% / 6) - 12.5px);
+      max-width: calc((100% / 6) - 12.5px);
+    }
+    /* make anchor behave like the old button */
+      .ost-card .ost-button {
+          display: block;
+          text-decoration: none;
+          color: inherit;
+          cursor: pointer;
+      }
+
+    .ost-button {
+      width: 100%;
+      height: 0;
+      padding-bottom: 150%;
+      border: none;
+      position: relative;
+      cursor: pointer;
+      overflow: hidden;
+      display: block;
+      background: none;
+    }
+
+    .ost-button img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 12px;
+    }
+
+    .ost-overlay {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      padding: 9px;
+      background: rgba(192, 167, 134, 0.85);
+      color: #000000;
+      text-align: center;
+      font-weight: bold;
+      opacity: 1.2;
+      transition: opacity 0.3s ease;
+      font-size: 14px;
+      border-radius: 5px;
+    }
+
+    /* Arrow buttons (injected) */
+    .ost-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.9);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      cursor: pointer;
+      z-index: 20;
+      transition: opacity 0.2s ease, transform 0.12s ease;
+    }
+    .ost-nav:hover { transform: translateY(-50%) scale(1.05); }
+    .ost-nav:disabled { opacity: 0.45; cursor: default; }
+
+    .ost-nav.prev { left: 8px; }
+    .ost-nav.next { right: 8px; }
+
+    .ost-nav svg { width: 16px; height: 16px; fill: #6d482b; }
+
+    /* Responsive adjustments to control how many cards are shown */
+    @media (max-width: 1200px) {
+      .ost-cards { gap: 12px; }
+      .ost-card { flex: 0 0 calc((100% / 4) - 9px); max-width: calc((100% / 4) - 9px); }
+    }
+
+    @media (max-width: 768px) {
+      .ost-cards { gap: 10px; }
+      .ost-card { flex: 0 0 calc((100% / 2) - 5px); max-width: calc((100% / 2) - 5px); }
+    }
+
+    @media (max-width: 480px) {
+      .ost-cards { gap: 8px; }
+      .ost-card { flex: 0 0 100%; max-width: 100%; }
+      .ost-nav { display: none; } /* on very small screens, allow swipe instead of arrows */
+    }
+
+    /* ---------------- FAQ SECTION ---------------- */
+    #faq {
+      padding: 60px 20px;
+    }
+
+    #faq .section-title {
+      text-align: center;
+      font-size: 36px;
+      font-weight: bold;
+      margin-bottom: 50px;
+      color: #fff8e7;
+    }
+
+    .faq-embossed-box {
+      background: #8B5E3C;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 8px 8px 15px rgba(0,0,0,0.4),
+                  -8px -8px 15px rgba(255,255,255,0.1);
+    }
+
+    .faq-item {
+      margin-bottom: 15px;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .faq-question {
+      width: 100%;
+      text-align: left;
+      background: #A16B4A;
+      border: none;
+      padding: 15px 20px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #fff8e7;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .faq-question:hover { background: #B07C55; }
+
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+      background: #8B5E3C;
+      padding: 0 20px;
+      color: #fff8e7;
+    }
+
+    .faq-item.active .faq-answer {
+      max-height: 200px;
+      padding: 15px 20px;
+    }
+
+    /* ---------------- SUBSCRIBE SECTION ---------------- */
+    #subscribe { padding: 60px 20px; }
+
+    #subscribe .section-title {
+      text-align: center;
+      font-size: 36px;
+      font-weight: bold;
+      margin-bottom: 40px;
+      color: #fff8e7;
+    }
+
+    .subscribe-embossed-box {
+      background: #8B5E3C;
+      border-radius: 15px;
+      padding: 30px;
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+      box-shadow: 8px 8px 15px rgba(0,0,0,0.4),
+                  -8px -8px 15px rgba(255,255,255,0.1);
+    }
+
+    .subscribe-text {
+      color: #fff8e7;
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+
+    .subscribe-form {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .subscribe-form input[type="email"] {
+      padding: 12px 15px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      flex: 1 1 250px;
+      min-width: 200px;
+    }
+
+    .subscribe-form button {
+      padding: 12px 25px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      background-color: #A16B4A;
+      color: #fff8e7;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .subscribe-form button:hover { background-color: #B07C55; }
+
+    @media (max-width: 480px) {
+      .subscribe-form {
+        flex-direction: column;
+      }
+      .subscribe-form input,
+      .subscribe-form button { width: 100%; }
+    }
+
+    /* ---------------- FOOTER ---------------- */
+    footer {
+      background: #6d482b;
+      color: white;
+      padding: 20px 0;
+      text-align: center;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav>
+    <a href="#home" class="logo">
+      <div class="logo-icon">🎵</div>
+      <div class="logo-text">
+        <span class="L">L</span>
+        <span class="yravine">yravine</span>
+      </div>
+    </a>
+
+    <div class="nav-links">
+      <a href="#home">HOME</a>
+      <a href="#top-ost">TOP OST</a>
+      <a href="#faq">FAQ</a>
+      <a href="#subscribe">SUBSCRIBE</a>
+      <div class="search-box">
+        <input type="text" placeholder="Search...">
+      </div>
+    </div>
+
+    <div class="hamburger" id="hamburger">
+      <div></div><div></div><div></div>
+    </div>
+  </nav>
+
+  <!-- HOME — BANNER CAROUSEL -->
+  <section id="home">
+    <div id="bannerCarousel" class="carousel slide mt-4 container" data-bs-ride="carousel">
+      <div class="carousel-inner">
+        <div class="carousel-item active">
+          <img src="https://i.pinimg.com/1200x/37/c3/cd/37c3cddbd0b8e594d9888a017deb6191.jpg" class="d-block w-100" alt="Banner 1">
+        </div>
+        <div class="carousel-item">
+          <img src="https://i.pinimg.com/1200x/81/cf/ae/81cfae75c7ad670f5cec46ab03a000e3.jpg" class="d-block w-100" alt="Banner 2">
+        </div>
+        <div class="carousel-item">
+          <img src="https://i.pinimg.com/736x/96/f5/5c/96f55cce3067949b667745123ced252b.jpg" class="d-block w-100" alt="Banner 3">
+        </div>
+        <div class="carousel-item">
+          <img src="https://i.pinimg.com/1200x/7d/27/db/7d27dbf4e57bfab92eb15b1454a53277.jpg" class="d-block w-100" alt="Banner 4">
+        </div>
+        <div class="carousel-item">
+          <img src="https://i.pinimg.com/736x/2a/e7/85/2ae785f204db15b3a97b3cfa6cd12b6b.jpg" class="d-block w-100" alt="Banner 5">
+        </div>
+        <div class="carousel-item">
+          <img src="https://i.pinimg.com/1200x/0e/b0/b9/0eb0b9dc910066c8fb3e6a46360f1290.jpg" class="d-block w-100" alt="Banner 6">
+        </div>
+      </div>
+
+      <button class="carousel-control-prev" type="button" data-bs-target="#bannerCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+      </button>
+
+      <button class="carousel-control-next" type="button" data-bs-target="#bannerCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+      </button>
+
+    </div>
+  </section>
+
+  <!-- TOP OST SECTION -->
+  <section id="top-ost">
+    <div class="container">
+      <h2 class="section-title">CDRAMA'S REVIEWS WITH OST</h2>
+
+      <!-- Modern Drama OST -->
+      <div class="ost-embossed-box">
+        <h3 class="ost-row-title">Modern Drama's Reviews</h3>
+        <div class="ost-cards">
+          <div class="ost-card">
+             <a class="ost-button" 
+                href="https://www.youtube.com/watch?v=wX9EUZWFdcw&list=RDwX9EUZWFdcw&start_radio=1"
+                target="_blank" rel="noopener noreferrer"
+                aria-label="Play A Crazy Little Thing Called First Love OST on YouTube">
+                <img src="FirstLove.jpg" alt="A Crazy Little Thing Called First Love">
+                <div class="ost-overlay">A Crazy Little Thing Called First Love</div>
+              </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+              href="https://www.youtube.com/watch?v=Nckju7t8qLI&list=RDNckju7t8qLI&start_radio=1"
+              target="_blank" rel="noopener noreferrer"
+              aria-label="Play Hidden Love OST on YouTube">
+              <img src="HiddenLove.jpg" alt="HL">
+              <div class="ost-overlay">Hidden Love</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=t5eBRBlE_vE&list=RDt5eBRBlE_vE&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play The Lament Of Autumn on YouTube">
+              <img src="TheLamentOfAutumn.jpg" alt="ABAY">
+              <div class="ost-overlay">The Lament Of Autumn</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=RYPJkjjlFjU&list=RDRYPJkjjlFjU&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play The Early Spring on YouTube">
+              <img src="TheEarlySpring.jpg" alt="ABAY">
+              <div class="ost-overlay">The Early Spring</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=rvWtsYGkUZ4&list=RDrvWtsYGkUZ4&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Overdo on YouTube">
+              <img src="Overdo.jpg" alt="ABAY">
+              <div class="ost-overlay">Overdo</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=2CRfsSuN8dU&list=RD2CRfsSuN8dU&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play As Beautiful As You on YouTube">
+              <img src="AsBeautifulAsYou.jpg" alt="ABAY">
+              <div class="ost-overlay">As Beautiful As You</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=1x8fZ-OzQmQ&list=RD1x8fZ-OzQmQ&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Shine On Me OST on YouTube">
+            <img src="ShineOnMe.jpg" alt="LTWYA">
+            <div class="ost-overlay">Shine On Me</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=Na2w47FbK38&list=RDNa2w47FbK38&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Love The Way You Are OST on YouTube">
+            <img src="LoveTheWayYouAre.jpg" alt="LTWYA">
+            <div class="ost-overlay">Love The Way You Are</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=esV97SdFNmI&list=RDesV97SdFNmI&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Don't Distrub My Study OST on YouTube">
+              <img src="Don'tDistrubMyStudy.jpg" alt="DMS">
+              <div class="ost-overlay">Don't Distrub My Study</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=O4XjVUZ3HM0&list=RDO4XjVUZ3HM0&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play South Wind Knows OST on YouTube">
+              <img src="SouthWindKnows.jpg" alt="SWK">
+              <div class="ost-overlay">South Wind Knows</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=gViXMF7wHJ4&list=RDgViXMF7wHJ4&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play My Deskmate OST on YouTube">
+              <img src="MyDaskMate.jpg" alt="MD">
+              <div class="ost-overlay">My Deskmate</div>
+          </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=2QXy_I7uZs0&list=RD2QXy_I7uZs0&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play When I Fly Toward You OST on YouTube">
+              <img src="WhenIFlyTowardYou.jpg" alt="WIFTY">
+              <div class="ost-overlay">When I Fly Towards You</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=7I1SPKwTXJ0&list=RD7I1SPKwTXJ0&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play A Love So Beautiful on YouTube">
+            <img src="LoveSoBeautiful.jpg" alt="ALSB">
+            <div class="ost-overlay">A Love So Beautiful</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=lvsnu1TE-p4&list=RDlvsnu1TE-p4&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Meteor Garden OST on YouTube">
+              <img src="MeteorGarden.jpg" alt="MG">
+              <div class="ost-overlay">Meteor Garden(F4)</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=0QS9g2Q09VA&list=RD0QS9g2Q09VA&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Please Classmate OST on YouTube">
+              <img src="PleaseClassmate.jpg" alt="PC">
+              <div class="ost-overlay">PleaseClassmate</div>
+          </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=2TGy-7Pz43E&list=RD2TGy-7Pz43E&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Nice To Meet You OST on YouTube">
+              <img src="NiceToMeetYou.jpg" alt="NTMY">
+              <div class="ost-overlay">Nice To Meet You</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=wDhiWQ13gtA&list=RDwDhiWQ13gtA&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Love's Ambition OST on YouTube">
+              <img src="LoveAmbition.jpg" alt="LA">
+              <div class="ost-overlay">Love's Ambition</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=lzovasOHnrU&list=RDlzovasOHnrU&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Best Choice Ever OST on YouTube">
+              <img src="BestChoiceEver.jpg" alt="BCE">
+              <div class="ost-overlay">Best Choice Ever</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=6_JxX-3EEVc&list=RD6_JxX-3EEVc&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Love Is Sweet OST on YouTube">
+              <img src="LoveIsSweet.jpg" alt="LIS">
+              <div class="ost-overlay">Love Is Sweet</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=6NbrbxY_U-k&list=RD6NbrbxY_U-k&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Love Crossed OST on YouTube">
+              <img src="LoveCrossed.jpg" alt="LC">
+              <div class="ost-overlay">Love Crossed</div>
+          </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=lYSuFRBTcZU"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Be With You OST on YouTube">
+              <img src="BeWithYou.jpg" alt="BWY">
+              <div class="ost-overlay">Be With You</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=0WcZyRahq0U&list=RD0WcZyRahq0U&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Only For Love OST on YouTube">
+              <img src="OnlyForLove.jpg" alt="OFL">
+              <div class="ost-overlay">Only For Love</div>
+          </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=s2IcjNiuTPI&list=RDs2IcjNiuTPI&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Filter OST on YouTube">
+              <img src="Filter.jpg" alt="F">
+              <div class="ost-overlay">Filter</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=IIkSCVA-yxU&list=RDIIkSCVA-yxU&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Arsenal Military Academy on YouTube">
+              <img src="ArsenalMilitaryAcademy.jpg" alt="AMA">
+              <div class="ost-overlay">Arsenel Military Academy</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=hn06lY3nSp0&list=RDhn06lY3nSp0&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Derailment on YouTube">
+              <img src="Derailment.jpg" alt="D">
+              <div class="ost-overlay">Derailment</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=L4t4d-lHsx0&list=RDL4t4d-lHsx0&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Put Your Head On My Shoulder on YouTube">
+              <img src="PutYourHeadOnMyShoulder.jpg" alt="PYHOMS">
+              <div class="ost-overlay">Put Your Head On My Shoulder</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=q1ckpYdoYrc&list=RDq1ckpYdoYrc&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Cute Programmer on YouTube">
+            <img src="CuteProgrammer.jpg" alt="CP">
+            <div class="ost-overlay">Cute Programmer</div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Xian Xia Drama OST -->
+      <div class="ost-embossed-box">
+        <h3 class="ost-row-title">Xian Xia Drama's Reviews</h3>
+        <div class="ost-cards">
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=2sovzEOAVv4&list=RD2sovzEOAVv4&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Immortal Samasara on YouTube">
+            <img src="immortal_samsara.jpg" alt="IS">
+            <div class="ost-overlay">Immortal Samsara</div>
+          </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=eUCEGzfe2os&list=RDeUCEGzfe2os&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Till The End Of The Moon on YouTube">
+            <img src="TTEOTM.jpg" alt="TTEOTM">
+            <div class="ost-overlay">Till The End Of The Moon</div>
+          </a>
+          </div>
+           <div class="ost-card">
+            <a class="ost-button"
+              href="https://www.youtube.com/watch?v=GPOYyA7QQFQ&list=RDGPOYyA7QQFQ&start_radio=1"
+              target="_blank" rel="noopener noreferrer"
+              aria-label="Play Density Bring The Demon on YouTube">
+              <img src="Density_bring_demon.jpg" alt="WDBTD">
+              <div class="ost-overlay">When The Density Brings The Demon</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+              href="https://www.youtube.com/watch?v=1fQe8CViLLk&list=RD1fQe8CViLLk&start_radio=1"
+              target="_blank" rel="noopener noreferrer"
+              aria-label="Play Starry Love on YouTube">
+              <img src="sl.jpg" alt="SL">
+              <div class="ost-overlay">Starry Love</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+              href="https://www.youtube.com/watch?v=V2efjBynAe4&list=RDV2efjBynAe4&start_radio=1"
+              target="_blank" rel="noopener noreferrer"
+              aria-label="Play The Density Of White Snake on YouTube">
+              <img src="DOWS.jpg" alt="DWS">
+              <div class="ost-overlay">The Destiny Of White Snake</div>
+            </a>
+          </div>
+           <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=UiXuUdmZirU&list=RDUiXuUdmZirU&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Moonlight Mystique on YouTube">
+            <img src="MoonLightMystique.jpg" alt="MLM">
+            <div class="ost-overlay">Moonlight Mystique</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+              href="https://www.youtube.com/watch?v=h3R4sUV4mUQ&list=RDh3R4sUV4mUQ&start_radio=1"
+              target="_blank" rel="noopener noreferrer"
+              aria-label="Play Xuan-Yuan Sword:Han Cloud on YouTube">
+              <img src="XY.jpg" alt="XY">
+              <div class="ost-overlay">Xuan-Yuan Sword:Han Cloud</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=cPAH1KWYx7o&list=RDcPAH1KWYx7o&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Ancient Love Poetry on YouTube">
+            <img src="ALPT.jpg" alt="ALP">
+            <div class="ost-overlay">Ancient Love Poetry</div>
+          </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+              href="https://www.youtube.com/watch?v=vRmFKNJIGmU&list=RDvRmFKNJIGmU&start_radio=1"
+              target="_blank" rel="noopener noreferrer"
+              aria-label="Play Love Between Fairy And Devil on YouTube">
+              <img src="LoveBetweenFairyAndDevil.jpg" alt="LBFD">
+              <div class="ost-overlay">Love Between Fairy And Devil</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=TemeLx_xejI&list=RDTemeLx_xejI&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Ashes Of Love on YouTube">
+              <img src="AshesOfLove.jpg" alt="AOL">
+              <div class="ost-overlay">Ashes Of Love</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=If00JSd4s1M&list=RDIf00JSd4s1M&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play The Last Immortal on YouTube">
+              <img src="LastImmortal.jpg" alt="LI">
+              <div class="ost-overlay">The Last Immortal</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=mJiHTvEob98&list=RDmJiHTvEob98&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Legend Of Shengli on YouTube">
+              <img src="LegendOfShengli.jpg" alt="LOSL">
+              <div class="ost-overlay">Legend Of Shengli</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=6acYaTM7A34&list=RD6acYaTM7A34&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play FEUD on YouTube">
+              <img src="FEUD1.jpg" alt="FEUD">
+              <div class="ost-overlay">FEUD</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=Ck1sPv6atHQ&list=RDCk1sPv6atHQ&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Beauty Of Resilience on YouTube">
+              <img src="BeautyOfResilience.jpg" alt="BOR">
+              <div class="ost-overlay">Beauty Of Resilience</div>
+          </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wu Xia Drama OST -->
+      <div class="ost-embossed-box">
+        <h3 class="ost-row-title">Wu Xia Drama's Reviews</h3>
+        <div class="ost-cards">
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=v5ypdYOzhCA&list=RDv5ypdYOzhCA&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Against The Current on YouTube">
+              <img src="AGAINSTTHECURRENT.jpg" alt="LFG">
+              <div class="ost-overlay">Against The Currnt</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=rH8MNZQepjc&list=RDrH8MNZQepjc&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Where The Mask Ends on YouTube">
+              <img src="WheretheMaskEnds.jpg" alt="MLC">
+              <div class="ost-overlay">Where The Mask Ends</div>
+          </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=nXGR-8zvkYI&list=RDnXGR-8zvkYI&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Shadow Punisher on YouTube">
+              <img src="ShadowPunisher.jpg" alt="MLC">
+              <div class="ost-overlay">Shadow Punisher</div>
+          </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=cZ4veHnfC34&list=RDcZ4veHnfC34&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Mysterious Lotus Casebook on YouTube">
+              <img src="MLCB.jpg" alt="MLC">
+              <div class="ost-overlay">Mysterious Lotus Casebook</div>
+          </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=K68XW1apCCo&list=PLwVTdPlIVp2_2FEgYjP6IQxypV7wwi56-&index=3"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play The Legend Of Female General on YouTube">
+              <img src="LOFG.jpg" alt="LFG">
+              <div class="ost-overlay">The Legend Of Female General</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+              href="https://www.youtube.com/watch?v=XdUpxYvPkQs&list=RDXdUpxYvPkQs&start_radio=1"
+              target="_blank" rel="noopener noreferrer"
+              aria-label="Play The Prisoner Of Beauty on YouTube">
+              <img src="POB.jpg" alt="POB">
+              <div class="ost-overlay">The Prisoner Of Beauty</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+              href="https://www.youtube.com/watch?v=qCF_X5Uw7r4&list=RDqCF_X5Uw7r4&start_radio=1"
+              target="_blank" rel="noopener noreferrer"
+              aria-label="Play Story Of Kunning Palace on YouTube">
+              <img src="SOKP.jpg" alt="SOKP">
+              <div class="ost-overlay">Story Of Kunning Palace</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=mp-MN6V5sxQ&list=RDmp-MN6V5sxQ&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Love Of Nirvana on YouTube">
+              <img src="LON.jpg" alt="LON">
+              <div class="ost-overlay">Love Of Nirvana</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+              href="https://www.youtube.com/watch?v=QhOAMyULYeU"
+              target="_blank" rel="noopener noreferrer"
+              aria-label="Play The Vendetta of An on YouTube">
+              <img src="TheVendettaofAn.jpg" alt="POB">
+              <div class="ost-overlay">The Vendetta of An</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+              href="https://www.youtube.com/watch?v=660MIWi3q0Y&list=RD660MIWi3q0Y&start_radio=1"
+              target="_blank" rel="noopener noreferrer"
+              aria-label="Play Key to the Phoenix Heart on YouTube">
+              <img src="KeytothePhoenixHeart.jpg" alt="KPH">
+              <div class="ost-overlay">Key to the Phoenix Heart
+              </div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+              href="https://www.youtube.com/watch?v=hZVfRZnlDaM&list=RDhZVfRZnlDaM&start_radio=1"
+              target="_blank" rel="noopener noreferrer"
+              aria-label="Play Blossoms Of Power on YouTube">
+              <img src="BlossomsOfPower.jpg" alt="BOP">
+              <div class="ost-overlay">Blossoms Of Power
+              </div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=HFS6qk11vPw"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Spring of the blade on YouTube">
+            <img src="SpringOfBlade.jpg" alt="SOB">
+            <div class="ost-overlay">Spring of the blade
+            </div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=XqKQ0n7U_7M&list=RDXqKQ0n7U_7M&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play The Road To Splendor on YouTube">
+            <img src="TheRoadToSplendor.jpg" alt="RTS">
+            <div class="ost-overlay">The Road To Splendor</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=dtE_93dRj2o&list=RDdtE_93dRj2o&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play The First Jasmine on YouTube">
+            <img src="TheFirstJasmine.jpg" alt="TFJ">
+            <div class="ost-overlay">The First Jasmine</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=ZSliIR_FBj0&list=RDZSliIR_FBj0&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Word Of Honor on YouTube">
+            <img src="WordOfHonor.jpg" alt="WOH">
+            <div class="ost-overlay">Word Of Honor</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+              href="https://www.youtube.com/watch?v=7afhG2ZnzbI&list=RD7afhG2ZnzbI&start_radio=1"
+              target="_blank" rel="noopener noreferrer"
+              aria-label="Play Story Of Pearl Girl on YouTube">
+              <img src="StoryOfPearlGirl.jpg" alt="SOPG">
+              <div class="ost-overlay">Story Of Pearl Girl</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+              href="https://www.youtube.com/watch?v=nnaZCKxQeYo&list=RDnnaZCKxQeYo&start_radio=1"
+              target="_blank" rel="noopener noreferrer"
+              aria-label="Play Legend Of Fei on YouTube">
+              <img src="LegendOfFei1.jpg" alt="LOF">
+              <div class="ost-overlay">Legend Of Fei</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=MlgUghisLWs&list=PLwVTdPlIVp28mXjUB0I1rfQhnuv8EpEeD"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Bloosm on YouTube">
+              <img src="Bloosm.jpg" alt="B">
+              <div class="ost-overlay">Bloosm</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=JwybZCsQhEk&list=RDJwybZCsQhEk&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play The Bloosm At Ruyi Pavillon on YouTube">
+              <img src="YuriPavillon.jpg" alt="YP">
+              <div class="ost-overlay">The Bloosm At Ruyi Pavillon</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=oYj9DLn_a_U"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Melody Of Golden Age on YouTube">
+              <img src="MelodyOfGoldenAge.jpg" alt="MOGA">
+              <div class="ost-overlay">Melody Of Golden Age</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=I4hrHbdDkTs&list=RDI4hrHbdDkTs&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Goodbye My Princess on YouTube">
+              <img src="GoodbyeMyPrincess.jpg" alt="GMP">
+              <div class="ost-overlay">Goodbye My Princess</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=FkWJQrfjyN0&list=RDFkWJQrfjyN0&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Perfect Match on YouTube">
+              <img src="PerfectMatch.jpg" alt="PM">
+              <div class="ost-overlay">Perfect Match</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=EZILpdqPaos&list=RDEZILpdqPaos&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play The King's Woman on YouTube">
+              <img src="King'sWoman.jpg" alt="KM">
+              <div class="ost-overlay">The King's Woman</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=zCCja9egzVM&list=RDzCCja9egzVM&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Flourished Pony on YouTube">
+              <img src="FlourishedPony.jpg" alt="FP">
+              <div class="ost-overlay">Flourished Pony</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=Oxlh22oZzvM&list=PLeyDV0PZ1au84XXMX2LNOOiSzbrGi-ruK"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Love And Crown on YouTube">
+              <img src="LoveAndCrown.jpg" alt="LC">
+              <div class="ost-overlay">Love And Crown</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=m87lIr_7NSk&list=RDm87lIr_7NSk&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Love In The Cloud on YouTube">
+              <img src="LoveInCloud.jpg" alt="LIC">
+              <div class="ost-overlay">Love In The Cloud</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=STxX0bv3Htg&list=RDSTxX0bv3Htg&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play The Long Balled on YouTube">
+              <img src="LongBalled.jpg" alt="LB">
+              <div class="ost-overlay">The Long Balled</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=jE3s6mRhV-0&list=RDjE3s6mRhV-0&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Love Like The Galaxy on YouTube">
+              <img src="LoveLikeGalaxy.jpg" alt="LLG">
+              <div class="ost-overlay">Love Like The Galaxy</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=OAOIaXYN-Dg&list=RDOAOIaXYN-Dg&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Princess Silver on YouTube">
+              <img src="PrincessSilver.jpg" alt="SP">
+              <div class="ost-overlay">Princess Silver</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=llhD5pGnO0c&list=RDllhD5pGnO0c&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Princess Agent on YouTube">
+              <img src="PrincessAgent.jpg" alt="PA">
+              <div class="ost-overlay">Princess Agent</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=d4CeoT3L_Fg&list=RDd4CeoT3L_Fg&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Stand By Me on YouTube">
+              <img src="StandByMe.jpg" alt="SBM">
+              <div class="ost-overlay">Stand By Me</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=ghTHB-_zzlY&list=RDghTHB-_zzlY&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Fated Heart on YouTube">
+              <img src="FatedHeart.jpg" alt="FH">
+              <div class="ost-overlay">Fated Heart</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=20mqXA6x2x4"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play General's Lady on YouTube">
+              <img src="General'sLady.jpg" alt="GL">
+              <div class="ost-overlay">General's Lady</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=Hym4SIPlPHg&list=RDHym4SIPlPHg&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Shadow Love on YouTube">
+              <img src="ShadowLove.jpg" alt="SL">
+              <div class="ost-overlay">Shadow Love</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=YH54ym6yOJg&list=RDYH54ym6yOJg&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Romance Of Tiger And Rose on YouTube">
+              <img src="RomanceOfTigerAndRose.jpg" alt="RTR">
+              <div class="ost-overlay">Romance Of Tiger And Rose</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=beEK8ccY2wA&list=RDbeEK8ccY2wA&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play A Female Student Arrives At Imperial College on YouTube">
+              <img src="FemaleStudentArriveAtImperialCollege.jpg" alt="FSAIC">
+              <div class="ost-overlay">A Female Student Arrives At Imperial College</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=smhsH7YuGcE&list=PLVFmmou8VyGCzKzspLhfzhghkBNWNuocO&index=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Youthful Glory on YouTube">
+              <img src="Youthful Glory.jpg" alt="YG">
+              <div class="ost-overlay">Youthful Glory</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=9rTafYXJrH4&list=RD9rTafYXJrH4&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Destined on YouTube">
+              <img src="Destined.jpg" alt="D">
+              <div class="ost-overlay">Destined</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=CUCEDHhodKA&list=RDCUCEDHhodKA&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play A Dream Within A Dream on YouTube">
+              <img src="DreamWithinADream.jpg" alt="DWD">
+              <div class="ost-overlay">A Dream Within A Dream</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=Zr5OmpnKK1Q&list=RDZr5OmpnKK1Q&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play A Journey To Love on YouTube">
+              <img src="JourneyToLove.jpg" alt="JTL">
+              <div class="ost-overlay">A Journey To Love</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=g-SMA8yEtB0&list=RDg-SMA8yEtB0&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play My Journey To You on YouTube">
+              <img src="MyJourneyToYou.jpg" alt="MJTY">
+              <div class="ost-overlay">My Journey To You</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=BfR9U1PWYXo&list=RDBfR9U1PWYXo&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play A Girl Like Me on YouTube">
+              <img src="AGirlLikeMe.jpg" alt="AGLM">
+              <div class="ost-overlay">A Girl Like Me</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=L3GdfMuCzHA&list=RDL3GdfMuCzHA&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Legend Of Anle on YouTube">
+              <img src="LegendOfAnle.jpg" alt="LOA">
+              <div class="ost-overlay">Legend Of Anle</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=I-G3-lOBtGk&list=RDI-G3-lOBtGk&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Princess Royal on YouTube">
+              <img src="PrincessRoyal.jpg" alt="PR">
+              <div class="ost-overlay">Princess Royal</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=fCPCiQqF1G4&list=RDfCPCiQqF1G4&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Under The Power on YouTube">
+              <img src="UnderThePower.jpg" alt="UTP">
+              <div class="ost-overlay">Under The Power</div>
+            </a>
+          </div> 
+        </div>
+      </div>
+
+      <!-- Xuan Huan Drama OST -->
+      <div class="ost-embossed-box">
+        <h3 class="ost-row-title">Xuan Huan Drama's Reviews</h3>
+        <div class="ost-cards">
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=Wn9_a762jU8&list=RDWn9_a762jU8&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Whisper Of Fate on YouTube">
+              <img src="whisper_of_fate.jpg" alt="WOF">
+              <div class="ost-overlay">Whisper Of Fate</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=lcVNSPXM2Nc&list=RDlcVNSPXM2Nc&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play The Untamed on YouTube">
+              <img src="The_untamed2.jpg" alt="TU">
+              <div class="ost-overlay">The Untamed</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=XMKx_XiVYf4&list=PL35mDx3HsyDT3WiB3mfMLFNzkEDf_r1t6&index=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Duoluo Continent on YouTube">
+              <img src="Duoluo_continent.jpg" alt="DC">
+              <div class="ost-overlay">Duoluo Continent</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=PJQGy005Ylg&list=RDPJQGy005Ylg&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Love Beyond The Grave on YouTube">
+              <img src="LoveBeyondTheGrave.jpg" alt="LBTG">
+              <div class="ost-overlay">Love Beyond The Grave</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=N_RCn_dsE9k"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Fate Chooses You on YouTube">
+              <img src="FateChoosesYou.jpg" alt="FCY">
+              <div class="ost-overlay">Fate Chooses You</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=f6mc_UnSa-o&list=RDf6mc_UnSa-o&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Veils Of Shadow on YouTube">
+              <img src="VEILOFSHADOWS.jpg" alt="VOS">
+              <div class="ost-overlay">Veils Of Shadow</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=1uuATdLr_Lo&list=RD1uuATdLr_Lo&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play The Unclouded Soul on YouTube">
+              <img src="TheUncloudedSoul.jpg" alt="TUS">
+              <div class="ost-overlay">The Unclouded Soul</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=_fimdQpDGqk&list=RD_fimdQpDGqk&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Love Of The Divine Tree on YouTube">
+              <img src="LoveOfDivineTree.jpg" alt="LODT">
+          aria-label="Play Love Of The Divine Tree on YouTube">
+              <div class="ost-overlay"></div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=oUdQttipeI4&list=RDoUdQttipeI4&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Love And Redemption on YouTube">
+              <img src="LAR.jpg" alt="LRe">
+              <div class="ost-overlay">Love And Redemption</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=EKKKZ7qyOjc&list=RDEKKKZ7qyOjc&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play moonlight reunion on YouTube">
+              <img src="MoonlightReunion.jpg" alt="MR">
+              <div class="ost-overlay">moonlight reunion </div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=qQMicUrvawE&list=RDqQMicUrvawE&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play The Eternal Fragrance on YouTube">
+              <img src="TheEternalFragance.jpg" alt="TEF">
+              <div class="ost-overlay">The Eternal Fragrance</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=TV1YKFA6S4Q&list=RDTV1YKFA6S4Q&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play The Journey Of Legend on YouTube">
+              <img src="JourneyOfLegend.jpg" alt="JOL">
+              <div class="ost-overlay">The Journey Of Legend</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=WCo8R7WZY_M&list=RDWCo8R7WZY_M&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Fangs Of Fortune on YouTube">
+              <img src="Fangs_of_fortune.jpg" alt="FOF">
+              <div class="ost-overlay">Fangs Of Fortune</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=By1WjoSYrQU&list=RDBy1WjoSYrQU&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Love In Pavillon on YouTube">
+              <img src="LoveInPavillon.jpg" alt="LIP">
+              <div class="ost-overlay">Fox Spirit Matchmaker: Love In Pavillon</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=iRQ0GKGOmi0"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Sword And Beloved on YouTube">
+              <img src="SwordAndBeloved.jpg" alt="SAB">
+              <div class="ost-overlay">Fox Spirit Matchmaker: Sword And Beloved</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+             href="https://www.youtube.com/watch?v=K0hwrHhREa0&list=RDK0hwrHhREa0&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Red Moon Pact on YouTube">
+              <img src="RedMoonPact.jpg" alt="RMP">
+              <div class="ost-overlay">Fox Spirit Matchmaker: Red Moon Pact</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=3Foes2wTUGc&list=RD3Foes2wTUGc&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Dashing Youth on YouTube">
+              <img src="Dashing_youth.jpg" alt="DY">
+              <div class="ost-overlay">Dashing Youth</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=zMOQte4G1IQ&list=RDzMOQte4G1IQ&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Blood Of Youth on YouTube">
+              <img src="BloodOfYouth.jpg" alt="BOY">
+              <div class="ost-overlay">Blood Of Youth</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=K-6DLy_12qU&list=RDK-6DLy_12qU&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Blood River on YouTube">
+              <img src="BloodRiver.jpg" alt="BR">
+              <div class="ost-overlay">Blood River</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=fOIk3okodAE&list=RDfOIk3okodAE&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Eternal Love Of Dream on YouTube">
+              <img src="EternalLoveOfDream.jpg" alt="ELOD">
+              <div class="ost-overlay">Eternal Love Of Dream</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=M7GkL--nb5M&list=RDM7GkL--nb5M&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Eternal Love on YouTube">
+              <img src="EternalLove.jpg" alt="EL">
+              <div class="ost-overlay">Eternal Love</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=mfSgGx8Ueg8&list=RDmfSgGx8Ueg8&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play The Blue Whisper on YouTube">
+              <img src="BlueWhisper.jpg" alt="BW">
+              <div class="ost-overlay">The Blue Whisper</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=Tw52z8t-Ku0&list=RDTw52z8t-Ku0&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play A Lifetime Love on YouTube">
+              <img src="LifetimeLove.jpg" alt="LL">
+              <div class="ost-overlay">A Lifetime Love</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=xWmX6mzkW6M&list=RDxWmX6mzkW6M&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Novoland:The Castle In The Sky on YouTube">
+              <img src="Novoland.jpg" alt="Novo">
+              <div class="ost-overlay">Novoland:The Castle In The Sky</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=EL7I0aj_9po&list=RDEL7I0aj_9po&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Love Game In Eastern Fantasy on YouTube">
+              <img src="LoveGameInEasternFantasy.jpg" alt="LGIEF">
+              <div class="ost-overlay">Love Game In Eastern Fantasy</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=G-jr7hCVhO8&list=RDG-jr7hCVhO8&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Journey Of Chongzion YouTube">
+              <img src="JourneyOfChongzi.jpg" alt="JOC">
+              <div class="ost-overlay">Journey Of Chongzi</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=iwf-QbU2dU8&list=RDiwf-QbU2dU8&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Lost You Forever on YouTube">
+              <img src="LostYouForever.jpg" alt="LYF">
+              <div class="ost-overlay">Lost You Forever</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=uXo7rwz3UVE&list=RDuXo7rwz3UVE&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Dance Of The Phoenix on YouTube">
+              <img src="DanceOfPhoenix.jpg" alt="DOTP">
+              <div class="ost-overlay">Dance Of The Phoenix</div>
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="ost-embossed-box">
+        <h3 class="ost-row-title">Chinese Movie's Reviews</h3>
+        <div class="ost-cards">
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=q8C0lw0ll98&list=RDq8C0lw0ll98&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play The Myth on YouTube">
+              <img src="myth.jpg" alt="TM">
+              <div class="ost-overlay">The Myth</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=x96lS4NvXXc&list=RDx96lS4NvXXc&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Ne Zha1 on YouTube">
+              <img src="nezha1.jpg" alt="NZ1">
+              <div class="ost-overlay">Ne Zha(1)</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=RJjQUfdVu34"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Ne Zha 2 on YouTube">
+              <img src="nezha2.jpg" alt="NZ2">
+              <div class="ost-overlay">Ne Zha(2)</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=EnYvs4ZDRr0&list=RDEnYvs4ZDRr0&start_radio=1"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Monster Hunt1 on YouTube">
+              <img src="monsterhunt1.jpg" alt="MH1">
+              <div class="ost-overlay">Monster Hunt(1)</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=dAA8eCIbyJQ"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Play Monster Hunt2 on YouTube">
+              <img src="monsterhunt2.jpg" alt="MH2">
+              <div class="ost-overlay">Monster Hunt(2)</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=f5CcgFTO274"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Bao on YouTube">
+              <img src="bao.jpg" alt="Bao">
+              <div class="ost-overlay">Bao</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=iP5Z3o3juzM&list=RDiP5Z3o3juzM&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play Mulan on YouTube">
+              <img src="mulan.jpg" alt="Mulan">
+              <div class="ost-overlay">Mulan</div>
+            </a>
+          </div>
+          <div class="ost-card">
+            <a class="ost-button"
+            href="https://www.youtube.com/watch?v=KqOGTxI2XAo&list=RDKqOGTxI2XAo&start_radio=1"
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Play I am What I am on YouTube">
+              <img src="whatIam.jpg" alt="IWI">
+              <div class="ost-overlay">I Am What I Am</div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ SECTION -->
+  <section id="faq">
+    <div class="container">
+      <h2 class="section-title">Frequently Asked Questions</h2>
+      <div class="faq-embossed-box">
+
+        <div class="faq-item">
+          <button class="faq-question">What is CDrama OST collection?</button>
+          <div class="faq-answer">
+            <p>This website curates original soundtracks from Chinese dramas, sorted by drama type and popularity.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">Can I download the OSTs?</button>
+          <div class="faq-answer">
+            <p>You can stream OSTs directly. Download options depend on the original copyright permissions.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">How often are new OSTs added?</button>
+          <div class="faq-answer">
+            <p>We update the collection weekly to include the latest popular dramas.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- SUBSCRIBE SECTION -->
+  <section id="subscribe">
+    <div class="container">
+      <h2 class="section-title">Subscribe to Our Newsletter</h2>
+      <div class="subscribe-embossed-box">
+        <p class="subscribe-text">Get updates on the latest CDrama OSTs directly to your inbox!</p>
+        <form class="subscribe-form">
+          <input type="email" placeholder="Enter your email" required>
+          <button type="submit">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>© 2025 Lyravine. All rights reserved.</p>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Navbar hamburger + FAQ toggle -->
+  <script>
+    const hamburger = document.getElementById('hamburger');
+    const navLinks = document.querySelector('.nav-links');
+
+    hamburger.addEventListener('click', () => {
+      navLinks.classList.toggle('active');
+    });
+
+    const faqItems = document.querySelectorAll('.faq-item');
+    faqItems.forEach(item => {
+      const btn = item.querySelector('.faq-question');
+      btn.addEventListener('click', () => {
+        item.classList.toggle('active');
+      });
+    });
+  </script>
+
+  <!-- Injected OST-row arrows + scroll behavior (no HTML changes required) -->
+  <script>
+    (function() {
+      // SVG arrow used for buttons
+      const prevSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>';
+      const nextSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>';
+
+      // For each embossed box, find the .ost-cards container and add nav controls
+      const boxes = document.querySelectorAll('.ost-embossed-box');
+      boxes.forEach(box => {
+        const track = box.querySelector('.ost-cards');
+        if (!track) return;
+
+        // create prev/next buttons
+        const prev = document.createElement('button');
+        prev.className = 'ost-nav prev';
+        prev.setAttribute('aria-label', 'Previous');
+        prev.innerHTML = prevSvg;
+
+        const next = document.createElement('button');
+        next.className = 'ost-nav next';
+        next.setAttribute('aria-label', 'Next');
+        next.innerHTML = nextSvg;
+
+        // append to box (keeps DOM unchanged for the ost-cards themselves)
+        box.appendChild(prev);
+        box.appendChild(next);
+
+        // helper: read gap (fallback to 15)
+        function getGap() {
+          const gapStr = getComputedStyle(track).gap || getComputedStyle(track).columnGap;
+          const val = parseFloat(gapStr);
+          return Number.isFinite(val) ? val : 15;
+        }
+
+        // page scroll amount: the visible width of the container (one "page")
+        function getScrollAmount() {
+          // scroll by full visible width (one page)
+          return Math.max(track.clientWidth - 10, 150);
+        }
+
+        // update disabled state of buttons
+        function updateButtons() {
+          const maxScrollLeft = track.scrollWidth - track.clientWidth - 1; // small fudge
+          prev.disabled = track.scrollLeft <= 0;
+          next.disabled = track.scrollLeft >= maxScrollLeft;
+        }
+
+        // show/hide arrows only when overflow exists
+        function updateVisibility() {
+          if (track.scrollWidth > track.clientWidth + 5) {
+            prev.style.display = '';
+            next.style.display = '';
+          } else {
+            prev.style.display = 'none';
+            next.style.display = 'none';
+          }
+        }
+
+        // click handlers
+        prev.addEventListener('click', () => {
+          const amt = getScrollAmount();
+          track.scrollBy({ left: -amt, behavior: 'smooth' });
+          // update will be done by scroll event
+        });
+        next.addEventListener('click', () => {
+          const amt = getScrollAmount();
+          track.scrollBy({ left: amt, behavior: 'smooth' });
+        });
+
+        // update states on scroll
+        track.addEventListener('scroll', () => {
+          updateButtons();
+        });
+
+        // on resize, update visibility/buttons
+        const ro = new ResizeObserver(() => {
+          updateVisibility();
+          updateButtons();
+        });
+        ro.observe(track);
+        // initial
+        updateVisibility();
+        updateButtons();
+
+        // enable left/right keyboard navigation if focused
+        track.tabIndex = 0;
+        track.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowRight') { e.preventDefault(); track.scrollBy({ left: getScrollAmount(), behavior: 'smooth' }); }
+          if (e.key === 'ArrowLeft') { e.preventDefault(); track.scrollBy({ left: -getScrollAmount(), behavior: 'smooth' }); }
+        });
+
+        // support for mouse wheel horizontal scroll (optionally)
+        track.addEventListener('wheel', (e) => {
+          // if vertical scroll, convert to horizontal when shift is not pressed
+          if (!e.shiftKey && Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+            e.preventDefault();
+            track.scrollBy({ left: e.deltaY, behavior: 'auto' });
+          }
+        }, { passive: false });
+      });
+    })();
+  </script>
+
+</body>
+</html>
